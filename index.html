@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Portfolio — Digital White Cube</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        cube: '#FAFAFA',
+                        darkcube: '#111111',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 全屏单一高饱和色彩背景 */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+            opacity: 0.35;
+            transition: filter 0.8s ease, opacity 0.8s ease;
+        }
+        .ambient-bg.frosted {
+            opacity: 0.5;
+            filter: blur(20px) brightness(0.5);
+            transform: scale(1.05); /* Prevent blur edges from showing */
+        }
+        .ambient-bg img, .ambient-bg video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+            transition: opacity 0.8s ease;
+        }
+        .ambient-bg img, .ambient-bg video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-black selection:text-white">
+    <!-- 全屏单一高饱和纯色背景 -->
+    <div class="ambient-bg" id="ambient-bg">
+        <img id="ambient-img" src="" alt="" class="w-full h-full object-cover absolute inset-0 transition-opacity duration-800 opacity-100">
+        <video id="ambient-video" src="" autoplay muted loop playsinline class="w-full h-full object-cover absolute inset-0 transition-opacity duration-800 opacity-0"></video>
+    </div>
+
+    <!-- 顶部导航栏 -->
+    <header class="w-full px-8 md:px-24 py-8 flex justify-between items-center z-50 bg-transparent sticky top-0">
+        <a href="#" onclick="router.navigate('home'); return false;" class="text-sm font-semibold tracking-widest uppercase hover:opacity-60 transition-opacity">
+            [Studio / Portfolio]
+        </a>
+        <nav class="flex items-center space-x-8 text-sm tracking-widest uppercase font-medium">
+            <a href="#" onclick="router.navigate('home'); return false;" class="hover:opacity-60 transition-opacity text-white underline underline-offset-8 decoration-1" id="nav-works">Works</a>
+            <a href="#" onclick="router.openModal('about'); return false;" class="hover:opacity-60 transition-opacity text-neutral-300 hover:text-white">About</a>
+            <a href="#" onclick="router.openModal('contact'); return false;" class="hover:opacity-60 transition-opacity text-neutral-300 hover:text-white">Contact</a>
+        </nav>
+    </header>
+
+    <!-- 主容器 (文字渲染区域) -->
+    <main id="app-container" class="flex-grow w-full relative">
+    </main>
+
+    <!-- 模态框 -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-6">
+        <div id="modal-content" class="bg-[#111111] text-white w-full max-w-5xl p-8 md:p-12 relative shadow-2xl transform scale-95 transition-transform duration-300 border border-white/15">
+            <button onclick="router.closeModal()" class="absolute top-6 right-6 text-sm uppercase tracking-widest text-neutral-200 hover:text-white transition-colors">
+                [Close]
+            </button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- 底部版权与极简高雅的音效风格切换栏 -->
+        <footer class="w-full px-8 md:px-24 py-8 flex flex-col md:flex-row justify-between items-center text-xs tracking-wider text-neutral-200 mt-auto bg-transparent ">
+        <p>MILAN / CHINA</p>
+        
+        <div class="flex items-center space-x-2 my-4 md:my-0 font-mono text-[11px] uppercase tracking-widest">
+            <span>AUDIO:</span>
+            <button onclick="setSoundscape('rain')" id="btn-rain" class="text-white font-semibold underline underline-offset-4">Rain</button>
+            <span>/</span>
+            <button onclick="setSoundscape('fire')" id="btn-fire" class="text-neutral-200 hover:text-white transition-colors">Hearth</button>
+            <span>/</span>
+            <button onclick="setSoundscape('stream')" id="btn-stream" class="text-neutral-200 hover:text-white transition-colors">Stream</button>
+            <span>/</span>
+            <button onclick="setSoundscape('wind')" id="btn-wind" class="text-neutral-200 hover:text-white transition-colors">Wind</button>
+            <span>/</span>
+            <button onclick="setSoundscape('mute')" id="btn-mute" class="text-neutral-200 hover:text-white transition-colors">Mute</button>
+        </div>
+    </footer>
+
+    <!-- JavaScript 应用与音效逻辑 -->
+    <script>
+        let audioCtx = null;
+        let masterGain = null;
+        let soundSourceNode = null;
+        let soundFilter = null;
+        let soundLfo = null;
+        let soundLfoGain = null;
+        let currentSoundType = 'rain';
+        let isAudioInitialized = false;
+
+        function initAudioContext() {
+            if (audioCtx) {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                return;
+            }
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            masterGain.connect(audioCtx.destination);
+        }
+
+        function stopCurrentSound() {
+            try {
+                if (soundSourceNode) {
+                    soundSourceNode.stop();
+                    soundSourceNode.disconnect();
+                    soundSourceNode = null;
+                }
+                if (soundLfo) {
+                    soundLfo.stop();
+                    soundLfo.disconnect();
+                    soundLfo = null;
+                }
+                if (soundFilter) {
+                    soundFilter.disconnect();
+                    soundFilter = null;
+                }
+            } catch (e) {
+                console.log("Stop sound error:", e);
+            }
+        }
+
+        function playSoundscape(type) {
+            initAudioContext();
+            stopCurrentSound();
+            currentSoundType = type;
+
+            ['rain', 'fire', 'stream', 'wind', 'mute'].forEach(t => {
+                const btn = document.getElementById('btn-' + t);
+                if (btn) {
+                    if (t === type) {
+                        btn.className = "text-white font-semibold underline underline-offset-4";
+                    } else {
+                        btn.className = "text-neutral-200 hover:text-white transition-colors";
+                    }
+                }
+            });
+
+            if (type === 'mute') return;
+
+            try {
+                const bufferSize = audioCtx.sampleRate * 8;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = buffer.getChannelData(0);
+
+                if (type === 'rain') {
+                    let b0 = 0;
+                    for (let i = 0; i < bufferSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        b0 = 0.95 * b0 + white * 0.05;
+                        output[i] = b0 * 0.04;
+                    }
+                } else if (type === 'fire') {
+                    for (let i = 0; i < bufferSize; i++) {
+                        let white = Math.random() * 2 - 1;
+                        if (Math.random() < 0.0007) white *= 9.0;
+                        output[i] = white * 0.032;
+                    }
+                } else if (type === 'stream') {
+                    let b0 = 0;
+                    for (let i = 0; i < bufferSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        b0 = 0.99 * b0 + white * 0.08;
+                        output[i] = b0 * 0.045;
+                    }
+                } else if (type === 'wind') {
+                    let b0 = 0;
+                    for (let i = 0; i < bufferSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        b0 = 0.995 * b0 + white * 0.05;
+                        output[i] = b0 * 0.05;
+                    }
+                }
+
+                soundSourceNode = audioCtx.createBufferSource();
+                soundSourceNode.buffer = buffer;
+                soundSourceNode.loop = true;
+
+                soundFilter = audioCtx.createBiquadFilter();
+                soundFilter.type = 'lowpass';
+
+                if (type === 'rain') {
+                    soundFilter.frequency.setValueAtTime(1400, audioCtx.currentTime);
+                    soundFilter.Q.setValueAtTime(1.2, audioCtx.currentTime);
+                } else if (type === 'fire') {
+                    soundFilter.frequency.setValueAtTime(750, audioCtx.currentTime);
+                    soundFilter.Q.setValueAtTime(2.0, audioCtx.currentTime);
+                } else if (type === 'stream') {
+                    soundFilter.frequency.setValueAtTime(2200, audioCtx.currentTime);
+                    soundFilter.Q.setValueAtTime(2.5, audioCtx.currentTime);
+                } else if (type === 'wind') {
+                    soundFilter.frequency.setValueAtTime(280, audioCtx.currentTime);
+                    soundFilter.Q.setValueAtTime(4.5, audioCtx.currentTime);
+
+                    soundLfo = audioCtx.createOscillator();
+                    soundLfo.type = 'sine';
+                    soundLfo.frequency.setValueAtTime(0.08, audioCtx.currentTime);
+
+                    soundLfoGain = audioCtx.createGain();
+                    soundLfoGain.gain.setValueAtTime(120, audioCtx.currentTime);
+
+                    soundLfo.connect(soundLfoGain);
+                    soundLfoGain.connect(soundFilter.frequency);
+                    soundLfo.start(0);
+                }
+
+                soundSourceNode.connect(soundFilter);
+                soundFilter.connect(masterGain);
+                soundSourceNode.start(0);
+                isAudioInitialized = true;
+            } catch (e) {
+                console.log("Play soundscape error:", e);
+            }
+        }
+
+        function setSoundscape(type) {
+            playSoundscape(type);
+        }
+
+        // 作品数据仓库
+        const projects = [
+            {
+                id: "shiyu",
+                title: "Shiyu",
+                subtitle: "Pratica di Net Art e Web Interattivo",
+                year: "2026",
+                medium: "Web-based, Interfaccia Interattiva, Codice Generativo",
+                tags: ["#NetArt", "#Interattivo", "#Indossabile", "#AI"],
+                color: "#0022FF",
+                coverUrl: "video/shiyu1.mp4",
+                heroUrl: "https://placehold.co/1600x900/222222/FAFAFA?text=Shiyu+Hero",
+                concept: `In un'epoca che persegue la massima comodità, deleghiamo progressivamente il giudizio, la scelta e la creazione all'IA. Tuttavia, l'efficienza tecnologica si accompagna spesso alla spoliazione della soggettività umana: il nostro linguaggio viene standardizzato, le scelte algoritmizzate e persino le emozioni quantificate. Dobbiamo prendere coscienza che l'IA non è uno strumento neutrale, bensì un sistema di controllo che sta ridefinendo il mondo.`,
+                details: [
+                    { 
+                        subtitle: "Interazione Web", 
+                        title: "Simulazione di etichette emotive nei feed", 
+                        text: "Simulazione di etichette emotive nei feed per far sperimentare al pubblico: 'Il linguaggio plasmato dalla piattaforma'. Esplora come gli algoritmi comprimano le esperienze emotive multidimensionali in etichette e simboli uniformi.",
+                        img: "foto/shiyu web.jpg" 
+                    },
+                    { 
+                        subtitle: "Dispositivo Indossabile", 
+                        title: "Dispositivo di controllo meccanico indossabile", 
+                        text: "Indossare un dispositivo di controllo meccanico per far sperimentare: 'Il corpo disciplinato dalla tecnologia'. Attraverso la limitazione fisica e l'intervento meccanico, percepire direttamente la regolazione profonda che la tecnologia impone ai sensi e ai comportamenti individuali.",
+                        img: "foto/shiyu indossabile.jpg" 
+                    },
+                    { 
+                        subtitle: "Video Arte", 
+                        title: "Dissoluzione di parole e immagini", 
+                        text: "Mostrare la dissoluzione di segni e immagini per far sperimentare: 'L'afasia e la perdita del linguaggio'. Attraverso immagini multimediali, indaga il collasso e la perdita di capacità espressiva umana in un contesto altamente tecnologizzato.",
+                        video: "video/shiyu.mp4" 
+                    }
+                ]
+            },
+            {
+                id: "xu-dian",
+                title: "Xu Dian",
+                subtitle: "Archivio di Libri & Interazione AR",
+                year: "2026",
+                medium: "Archivio di Libri, Scansione AR, Interfaccia Digitale",
+                tags: ["#Archivio", "#AR", "#BookArt", "#AI"],
+                color: "#FF6600",
+                coverUrl: "video/xudian.mp4",
+                heroUrl: "https://placehold.co/1600x900/333333/FAFAFA?text=Xu+Dian+Hero",
+                concept: `Il progetto parte da una domanda: cosa rende una religione reale?<br><br>Abbiamo creato una religione, condensandola in un libro fisico pesante e denso di parole che lo spettatore potrebbe non comprendere. Crediamo che la sacralità di una religione non derivi necessariamente dalla comprensione; a volte si comincia a credere anche senza capire del tutto.<br><br>La carta conferisce tangibilità, mentre il modello 3D trasforma l'opera in qualcosa di visibile e sperimentabile.<br><br>Quando avvii la scansione AR, compi in realtà un rituale religioso moderno, sostituendo i metodi tradizionali con la tecnologia per evocare qualcosa che originariamente non esisteva. La religione forse nasce nel momento in cui le persone smettono di chiedersi continuamente 'È vero?' e iniziano a credere 'Potrebbe essere vero'.`,
+                details: [
+                    { 
+                        subtitle: "《Xu Dian》Video&AR", 
+                        text: "Processo di interazione AR e rituale digitale.",
+                        video: "video/xudian.mp4" 
+                    },
+                    { 
+                        subtitle: "Libro artigianale", 
+                        text: "XuDian - Il libro d'artista e la materialità del testo.",
+                        img: "foto/xudian libro.jpg" 
+                    }
+                ]
+            },
+            {
+                id: "a-digestion",
+                title: "A Digestion",
+                subtitle: "Interazione Uomo-Macchina & Decostruzione del Testo",
+                year: "2026",
+                medium: "Interfaccia Web, Testo Interattivo, Decostruzione Digitale",
+                tags: ["#Interattivo", "#AI", "#CriticalDesign"],
+                color: "#FFD700",
+                coverUrl: "video/a digestion.mp4",
+                heroUrl: "https://placehold.co/1600x900/444444/FAFAFA?text=Digestion+Hero",
+                concept: `Il corpo umano possiede organi per la digestione: masticazione, decomposizione, assorbimento ed espulsione. La macchina non ha organi, ma possiede il tasto DELETE.<br><br>In quest'opera, il delete è il modo in cui il mondo digitale digerisce. Il sito simula questo processo — il testo viene cancellato ripetutamente da esseri umani e intelligenza artificiale, come masticato più volte, scomposto poco a poco, fino a dissolversi nel bianco.<br><br>Proprio come nel romanzo 1984 di George Orwell, dove la 'Neolingua' elimina sistematicamente i vocaboli per assottigliare il dizionario e ridurre la capacità di pensiero, la lingua diventa qui il vero oggetto di una digestione sistemica. 1984 cessa di essere un semplice testo letterario per trasformarsi nell'intimo paradigma di questa digestione digitale, in cui spettatori e intelligenza artificiale collaborano e competono nella scomposizione e cancellazione del testo, fino alla sua totale scomparsa.<br><br>Uno è la digestione reale del corpo, l'altro è la digestione simulata dalla macchina attraverso il delete. Due organi, lo stesso processo.`,
+                details: [
+                    { 
+                        subtitle: "《1984》Testo integrale", 
+                        text: "Il testo di 1984 e la scomposizione digitale.",
+                        img: "foto/a digestion.jpg" 
+                    },
+                    { 
+                        subtitle: "Video, il processo della digestione — visceri, cellule, sangue.", 
+                        text: "Video del processo di digestione biologica e digitale.",
+                        video: "video/a digestion.mp4" 
+                    },
+                    { 
+                        subtitle: "《A Digestion》Installazione", 
+                        text: "《A Digestion》Installazione", 
+                        img: "foto/a digestion 2.jpg" 
+                    }
+                ]
+            },
+            {
+                id: "food-lab",
+                title: "FOOD LAB",
+                subtitle: "Lecture Performance & Gioco Web",
+                year: "2026",
+                medium: "Performance Critica, Web Interattivo, Video",
+                tags: ["#Performance", "#WebGame", "#CriticalDesign"],
+                color: "#00E676",
+                coverUrl: "video/foodlab.mp4",
+                heroUrl: "https://placehold.co/1600x900/333333/FAFAFA?text=FOOD+LAB+Hero",
+                concept: `Nell'era dei social media e dell'economia dell'attenzione, la pseudoscienza alimentare ha costruito una sofisticata 'fabbrica di narrazioni'. Essa aliena i nostri corpi in 'tubi meccanici' o 'sistemi inquinati' che necessitano di intervento, purificazione e ottimizzazione, trasformando la salute individuale in un campo di sperimentazione per la cattura del traffico digitale.<br><br>'FOOD LAB' invita il pubblico a sperimentare in prima persona come le informazioni sulla salute vengano prodotte, diffuse e interiorizzate come logica di controllo sul corpo attraverso questa performance multimediale che unisce critica accademica e pratica artistica. Non forniamo risposte, ma solleviamo interrogativi: quando i nostri corpi diventano soggetti sperimentali di dati, algoritmi e discorsi pseudoscientifici, come possiamo riprendere possesso della nostra sovranità corporea?`,
+                details: [
+                    { 
+                        subtitle: "《Food Lab》", 
+                        text: "Registrazione video della performance multimediale.",
+                        video: "video/foodlab.mp4" 
+                    },
+                    { 
+                        subtitle: "Performance sul palco", 
+                        text: "Documentazione fotografica della performance dal vivo.",
+                        img: "foto/foodlab.jpg" 
+                    }
+                ]
+            },
+            {
+                id: "il-linguaggio-della-forma",
+                title: "il linguaggio della forma",
+                subtitle: "Ripresa Panoramica a 360° & Ricerca Scultorea",
+                year: "2026",
+                medium: "Video Panoramico 360°, Ricerca Scultorea",
+                tags: ["#Video360", "#Scultura", "#Brera"],
+                color: "#FF2A2A",
+                coverUrl: "video/il linguaggio della forma.mp4",
+                heroUrl: "https://placehold.co/1600x900/3a3a3a/FAFAFA?text=Form+Hero",
+                concept: `Il video documenta una lezione del corso di Scultura all'Accademia di Belle Arti di Brera attraverso una ripresa panoramica a 360°.<br><br>L'aula si trasforma in uno spazio d'indagine sensoriale e formale: il filmato riprende i processi creativi, il dialogo con i docenti e le sperimentazioni individuali che danno forma all'idea scultorea.<br><br>Esplora liberamente l'ambiente del laboratorio, i gesti della lavorazione e lo spazio dell'aula guardandoti intorno.`,
+                details: [
+                    { 
+                        subtitle: "《il linguaggio della forma》", 
+                        text: "Ripresa panoramica a 360° della lezione di scultura e documentazione dei processi creativi.",
+                        video: "video/il linguaggio della forma.mp4" 
+                    }
+                ]
+            },
+            {
+                id: "silent-sky",
+                title: "Silent Sky",
+                subtitle: "Inquinamento Luminoso & Performance Ecologica",
+                year: "2025",
+                medium: "Performance Fisica, Documentazione Video",
+                tags: ["#Performance", "#Ecologia", "#Ambiente", "#InquinamentoLuminoso"],
+                color: "#0088FF",
+                coverUrl: "video/fly.mp4",
+                heroUrl: "https://placehold.co/1600x900/222222/FAFAFA?text=Sky+Hero",
+                concept: `La teoria dell'evoluzione di Darwin suggerisce che le specie sopravvivono adattandosi all'ambiente. Tuttavia, oggi l'inquinamento luminoso causato dall'uomo ha completamente sovvertito questa logica: gli uccelli migratori deviano dalla rotta a causa delle luci intense, e gli animali notturni smarriscono l'orientamento.<br><br>L'oscurità è la base dei ritmi naturali e del corretto funzionamento dell'ecosistema, ma l'illuminazione artificiale ovunque presente sta spogliando con la forza questa oscurità. La 'capacità di adattamento', che un tempo aiutava le specie a perpetuarsi, è diventata invece una trappola mortale.<br><br>L'essere umano non solo svolge un ruolo chiave nella creazione di questa crisi, ma si assume anche la responsabilità fondamentale di porvi rimedio.<br><br>Attraverso un linguaggio corporeo esasperato, l'artista si incarna nella vita all'interno di un ecosistema squilibrato. Lottando e subendo frustrazioni tra luci e ritmi in drastica mutazione, il corpo carnale sperimenta il caos e il dolore derivanti dalla perdita dell'oscurità — rivelando così la distruzione dell'ordine naturale causata dalle attività umane e invocando la ricostruzione e la protezione dell'ecologia oscura.`,
+                details: [
+                    { 
+                        subtitle: "Volo degli uccelli", 
+                        text: "Documentazione video sul volo degli uccelli.",
+                        video: "video/fly.mp4" 
+                    },
+                    { 
+                        subtitle: "《Silent Sky》Performance dal vivo", 
+                        text: "Registrazione video della performance dal vivo.",
+                        video: "video/silent sky.mp4" 
+                    }
+                ]
+            },
+            {
+                id: "lux-initiative",
+                title: "Lux Initiative",
+                subtitle: "Progetto Sogno & Sito Web Fittizio",
+                year: "2025",
+                medium: "Web-based, Net Art, Archivio Fittizio",
+                tags: ["#NetArt", "#Dream", "#WebDesign"],
+                color: "#8A2BE2",
+                coverUrl: "foto/Lux initiative 1.jpg",
+                heroUrl: "https://placehold.co/1600x900/444444/FAFAFA?text=Lux+Hero",
+                concept: `'LUX INITIATIVE' è un'opera di Net Art immersiva incentrata sull'analisi dei sogni e sull'elevazione della coscienza. L'opera immagina un'organizzazione segreta che esplorava la struttura dei sogni, costretta a chiudere nel 2001. Gli spettatori cercano frammenti di dati residui all'interno della pagina web, ricostruendo i ricordi 'reali' cancellati.`,
+                details: [
+                    { 
+                        subtitle: "", 
+                        img: "foto/Lux initiative.jpg" 
+                    },
+                    { 
+                        subtitle: "", 
+                        img: "foto/Lux initiative 1.jpg" 
+                    },
+                    { 
+                        subtitle: "Schermata del sito web Lux Initiative", 
+                        img: "foto/Lux initiative 2.jpg" 
+                    }
+                ]
+            },
+            {
+                id: "nemoris",
+                title: "Nemoris",
+                subtitle: "Gioco Interattivo",
+                year: "2025",
+                medium: "Gioco Interattivo, Narrativa Digitale, UI/UX",
+                tags: ["#GameArt", "#Interattivo", "#Narrativa"],
+                color: "#FF7A00",
+                coverUrl: "video/nemoris.mp4",
+                heroUrl: "https://placehold.co/1600x900/333333/FAFAFA?text=Nemoris+Hero",
+                concept: `Nell'era di Internet, siamo ancora noi stessi o siamo dei 'fantocci' controllati dagli algoritmi?<br><br>Il progetto inserisce questa riflessione all'interno di una torre metaforica. Nei panni di un esploratore, il giocatore entra nella torre e deve attraversare consecutivamente tre livelli che rappresentano altrettanti stati di sopravvivenza quotidiana: l'ufficio, simbolo dell'addomesticamento del lavoro; l'ambiente domestico, che rappresenta l'intrusione nella sfera privata; e la biblioteca, simbolo della digitalizzazione e quantificazione della conoscenza.<br><br>In ogni livello, le scelte del giocatore (sottomissione o resistenza) si condensano in un 'frammento di dati (carta)'. Al termine dell'esplorazione dei tre livelli, il giocatore si dirige verso la sommità della torre portando con sé le tre carte raccolte, per affrontare il destino finale determinato dai volti delle carte:<br>- Scelta di sottomissione: Il giocatore si fonde con l'entità in cima alla torre, perdendo la propria soggettività e riducendosi a nutrimento di dati eternamente imprigionato in un ciclo infinito.<br>- Scelta di rifiuto: Il giocatore frantuma lo specchio, realizzando con stupore che la cosiddetta 'entità' non è una forza esterna, bensì la propria 'ombra digitale' alienata nella rete. Con la rottura dello specchio e il crollo della torre, il giocatore si libera dal controllo degli algoritmi, compiendo la ricostruzione e la rinascita di sé.`,
+                details: [
+                    { 
+                        subtitle: "《Nemoris》— Open Day", 
+                        text: "Presentazione del progetto e dimostrazione del gameplay.",
+                        video: "video/nemoris.mp4" 
+                    }
+                ]
+            },
+            {
+                id: "supermercato",
+                title: "Un'ora prima della chiusura del supermercato",
+                subtitle: "Cortometraggio Documentario & Osservazione Spaziale",
+                year: "2025",
+                medium: "Cortometraggio Documentario, Soundscape, Osservazione Sociale",
+                tags: ["#VideoArt", "#Documentario", "#Cinema"],
+                color: "#00E5FF",
+                coverUrl: "video/supermercato.mp4",
+                heroUrl: "https://placehold.co/1600x900/555555/FAFAFA?text=Supermarket+Hero",
+                concept: `L'opera assume il supermercato quotidiano a Milano come campo d'osservazione, concentrandosi sull'ora che precede la chiusura. Attraverso una prospettiva osservativa, la ricerca porta alla luce le disuguaglianze economiche e le gerarchie di classe nascoste dietro i comportamenti d'acquisto.<br><br>Più che uno spazio di scambio materiale, il supermercato è un dispositivo di potere regolato dal capitale. Convertendo le routine quotidiane in un'iconografia sociale, il progetto solleva un interrogativo cruciale: all'interno di una società capitalistica, il consumo è un atto di libera scelta o una forma di compromesso inevitabile?`,
+                details: [
+                    { 
+                        subtitle: "《Un'ora prima della chiusura del supermercato》", 
+                        text: "Cortometraggio documentario e osservazione spaziale.",
+                        video: "video/supermercato.mp4" 
+                    }
+                ]
+            },
+            {
+                id: "insert-shot",
+                title: "Cinelingo-Insert Shot",
+                subtitle: "Canale di Analisi del Linguaggio Cinematografico",
+                year: "2025",
+                medium: "Video Saggio, Analisi del Linguaggio Filmico",
+                tags: ["#VideoEssay", "#Cinelingo", "#LinguaggioFilmico", "#Fenomenologia"],
+                color: "#2979FF",
+                coverUrl: "video/Insert Shot.mp4",
+                heroUrl: "https://placehold.co/1600x900/444444/FAFAFA?text=Cinelingo+Hero",
+                concept: `Abbiamo creato un canale visivo denominato “Cinelingo”, concepito per esplorare, decostruire e spiegare in profondità la grammatica e il linguaggio dei media cinematografici.<br><br>Attraverso saggi video mirati e analisi fenomenologiche delle inquadrazioni , il progetto indaga come i dettagli apparentemente marginali all'interno di una sequenza filmica plasmino la percezione dello spettatore, orientino lo sguardo e ridefiniscano la struttura del potere narrativo.`,
+                details: [
+                    { 
+                        subtitle: "《Cinelingo-Insert Shot》", 
+                        text: "Saggio video e analisi del linguaggio cinematografico.",
+                        video: "video/Insert Shot.mp4" 
+                    }
+                ]
+            },
+            {
+                id: "maurizio-cattelan",
+                title: "artbites-Maurizio cattelan",
+                subtitle: "Saggio Video & Analisi dell'Arte Contemporanea",
+                year: "2025",
+                medium: "Video Saggio, Analisi del Linguaggio Filmico",
+                tags: ["#VideoEssay", "#ArtBites", "#MaurizioCattelan", "#ArteContemporanea"],
+                color: "#AA00FF",
+                coverUrl: "video/Maurizio Cattelan.mp4",
+                heroUrl: "https://placehold.co/1600x900/3a3a3a/FAFAFA?text=Cattelan+Hero",
+                concept: `Una banana attaccata al muro con del nastro adesivo da 120.000 dollari, un WC d'oro perfettamente funzionante e il Papa colpito da un meteorite. Maurizio Cattelan è un genio della satira o il più grande provocatore dell'arte contemporanea?<br><br>In questo video analizziamo la poetica e le opere più iconiche dell'artista italiano più controverso al mondo. Attraverso l'uso del nero umorismo, dell'ironia e della riproducibilità, Cattelan non ci offre risposte, ma ci costringe a porci domande scomode sul valore dell'arte, sul potere, sulla religione e sulla morte.`,
+                details: [
+                    { 
+                        subtitle: "《Artbites-Maurizio Cattelan》", 
+                        text: "Saggio video e analisi critica dell'opera di Maurizio Cattelan.",
+                        video: "video/Maurizio Cattelan.mp4" 
+                    }
+                ]
+            },
+            {
+                id: "citta-degli-zombi",
+                title: "Citta degli zombi",
+                subtitle: "Animazione collage & Letteratura Zombie",
+                year: "2024",
+                medium: "Animazione Sperimentale, Collage AI, Narrativa Digitale",
+                tags: ["#Animazione", "#AI", "#Letteratura Zombie", "#Collage"],
+                color: "#FFD700",
+                coverUrl: "video/citta di zombi.mp4",
+                heroUrl: "https://placehold.co/1600x900/333333/FAFAFA?text=Zombie+Hero",
+                concept: `I profili falsi, comunemente noti come "account zombie", popolano le principali piattaforme digitali come strumenti di promozione automatica, generando clic, commenti e like per scopi commerciali o personali. Attraverso frammenti di codice casuali e privi di logica, tali account producono post i cui testi, inaspettatamente, risuonano con il contesto umano e generano risonanza emotiva, dando vita alla cosiddetta "letteratura zombie". Spinti dalla sua peculiare natura ludica, molti utenti hanno iniziato a imitare attivamente questo stile linguistico, alimentandone la popolarità e la diffusione virale.<br><br>L'opera 《Citta Degli Zombi》 è un'animazione in collage che riflette sulle tendenze di sviluppo dell'intelligenza artificiale, esplorando il concetto di "Effetto Anti-ELIZA". Il film mostra come gli account zombie si mimetizzino imitando il comportamento umano per evitare la chiusura, evolvendosi gradualmente in "zombie IA" dotati di apprendimento autonomo e capacità di azione indipendente, fino a costruire un nuovissimo panorama ecologico digitale.`,
+                details: [
+                    { 
+                        subtitle: "《Citta Degli Zombi》", 
+                        video: "video/citta di zombi.mp4" 
+                    }
+                ]
+            },
+{
+                id: "traccia",
+                title: "Traccia",
+                subtitle: "Arduino & Tracciamento Dati Personali",
+                year: "2024",
+                medium: "Arduino, Microcontrollori, Consumo Digitale",
+                tags: ["#Hardware", "#Arduino", "#DataArt"],
+                color: "#4B0082",
+                coverUrl: "video/traccia.mp4",
+                heroUrl: "https://placehold.co/1600x900/444444/FAFAFA?text=Traccia+Hero",
+                concept: `Nell'era dell'informazione digitale, con la comodità offerta dai dispositivi elettronici, i dati sono ormai penetrati in ogni momento della nostra vita quotidiana. Dai like sui social media alle innumerevoli ricerche online, le nostre azioni vengono continuamente digitalizzate e archiviate in tempo reale in una nuvola invisibile.<br><br>Nonostante il grande sviluppo della tecnologia abbia ampiamente soddisfatto i nostri bisogni, pochi sono consapevoli che la quantità di dati che produciamo costantemente ogni giorno sta avendo un impatto ambientale grave e severo.<br><br>Il lavoro intitolato Traccia si presenta come una performance artistica. Attraverso una camminata di un'intera giornata attraverso la città per simulare i percorsi quotidiani, l'opera viene completata seguendo la routine degli spostamenti giornalieri.<br><br>Come soggetto dell'opera ho scelto un'azione quotidiana compiuta da tutti: il 'cliccare sullo schermo'. Mentre utilizzo il telefono cellulare, una stampante che mi segue stampa in tempo reale i dati del dispositivo in base al mio comportamento.<br><br>Tutta la carta stampata si accumula progressivamente dietro di me fino alla fine della performance, presentando visivamente la totalità dei dati generati dall'uso dello smartphone nel corso dell'intera giornata.`,
+                details: [
+                    { 
+                        subtitle: "《Traccia》", 
+                        video: "video/traccia.mp4" 
+                    },
+                    { 
+                        subtitle: "", 
+                        img: "foto/Traccia1.jpg" 
+                    },
+                    { 
+                        subtitle: "Area espositiva", 
+                        img: "foto/Traccia2.jpg" 
+                    }
+                ]
+            },
+{
+                id: "micro-espressioni",
+                title: "Micro-espressioni",
+                subtitle: "Sistema Espositivo AR Interattivo",
+                year: "2023",
+                medium: "Sistema AR, Tracciamento Facciale, Spazio Immersivo",
+                tags: ["#AR", "#Mostra", "#Interattivo"],
+                color: "#FF007F",
+                coverUrl: "video/mircro-espressioni.mp4",
+                heroUrl: "https://placehold.co/1600x900/555555/FAFAFA?text=Hero",
+                concept: `Le persone, ha causa dello sviluppo dell’era di Internet, prestano maggiore attenzione alla loro immagine visibile sui social media.<br><br>L’immagine che risulta in rete, viene dunque confrontata con quella reale ed analizzando le microespressioni, si osserva in che modo le persone utilizzano diverse modalità di porsi in una immagine esterna, come nei social media.`,
+                details: [
+                    { 
+                        subtitle: "Selezione tag", 
+                        img: "foto/micro.jpg" 
+                    },
+                    { 
+                        subtitle: "", 
+                        img: "foto/micro1.jpg" 
+                    },
+                    { 
+                        subtitle: "", 
+                        img: "foto/micro2.jpg" 
+                    },
+                    { 
+                        subtitle: "Archivio del Libro", 
+                        img: "foto/micro3.jpg" 
+                    },
+                    { 
+                        subtitle: "Processo di installazione", 
+                        video: "video/mircro-espressioni.mp4" 
+                    }
+                ]
+            }
+];
+
+        let bgSlideInterval = null;
+        let currentBgIndex = 0;
+        const bgImages = projects.map(p => p.coverUrl);
+
+        function isVideoUrl(url) {
+            if (!url) return false;
+            const lower = url.toLowerCase();
+            return lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.mov') || lower.endsWith('.ogg');
+        }
+
+        function setAmbientMedia(url, solidColor = null) {
+            const imgEl = document.getElementById('ambient-img');
+            const videoEl = document.getElementById('ambient-video');
+            const ambientBg = document.getElementById('ambient-bg');
+            if (!imgEl || !videoEl || !ambientBg) return;
+
+            if (solidColor) {
+                videoEl.style.opacity = '0';
+                imgEl.style.opacity = '0';
+                videoEl.pause();
+                ambientBg.style.backgroundColor = solidColor;
+                return;
+            } else {
+                ambientBg.style.backgroundColor = 'transparent';
+            }
+
+            if (isVideoUrl(url)) {
+                videoEl.src = url;
+                videoEl.currentTime = 0;
+                videoEl.play().catch(e => console.log("Video play error:", e));
+                videoEl.style.opacity = '1';
+                imgEl.style.opacity = '0';
+            } else {
+                imgEl.src = url;
+                imgEl.style.opacity = '1';
+                videoEl.style.opacity = '0';
+                videoEl.pause();
+            }
+        }
+
+        function startBgSlideshow() {
+            if (bgSlideInterval) clearInterval(bgSlideInterval);
+            if (bgImages.length > 0) {
+                setAmbientMedia(bgImages[currentBgIndex]);
+            }
+            bgSlideInterval = setInterval(() => {
+                currentBgIndex = (currentBgIndex + 1) % bgImages.length;
+                setAmbientMedia(bgImages[currentBgIndex]);
+            }, 4000);
+        }
+
+        function stopBgSlideshow() {
+            if (bgSlideInterval) clearInterval(bgSlideInterval);
+        }
+
+        function handleProjectHover(coverUrl) {
+            stopBgSlideshow();
+            setAmbientMedia(coverUrl);
+        }
+
+        function handleProjectLeave() {
+            startBgSlideshow();
+        }
+
+        const router = {
+            currentView: 'home',
+            currentProjectId: null,
+
+            init() {
+                this.navigate('home');
+            },
+
+            navigate(view, param = null) {
+                this.currentView = view;
+                this.currentProjectId = param;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                const container = document.getElementById('app-container');
+                const ambientBg = document.getElementById('ambient-bg');
+                container.style.opacity = '0';
+                container.style.transform = 'translateY(8px)';
+
+                setTimeout(() => {
+                    if (view === 'home') {
+                        if (ambientBg) ambientBg.classList.remove('frosted');
+                        this.renderHome(container);
+                    } else if (view === 'detail') {
+                        stopBgSlideshow();
+                        if (ambientBg) ambientBg.classList.add('frosted');
+                        const currentProject = projects.find(p => p.id === param);
+                        if (currentProject) {
+                            const targetIds = ['il-linguaggio-della-forma', 'nemoris', 'citta-degli-zombi', 'food-lab', 'supermercato', 'insert-shot', 'maurizio-cattelan'];
+                            if (targetIds.includes(param)) {
+                                setAmbientMedia('', currentProject.color);
+                            } else {
+                                let bgTarget = currentProject.coverUrl;
+                                if (isVideoUrl(bgTarget)) {
+                                    // 如果封面是视频，优先寻找 details 中的第一张图片作为背景
+                                    const firstImgDetail = currentProject.details ? currentProject.details.find(d => d.img) : null;
+                                    bgTarget = firstImgDetail ? firstImgDetail.img : (currentProject.heroUrl || "https://placehold.co/1600x900/222222/FAFAFA?text=Background");
+                                }
+                                setAmbientMedia(bgTarget);
+                            }
+                        }
+                        this.renderDetail(container, param);
+                    }
+                    container.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    container.style.opacity = '1';
+                    container.style.transform = 'translateY(0)';
+                }, 200);
+            },
+
+            renderHome(container) {
+                const years = ["2026", "2025", "2024", "2023"];
+                const groupedProjects = {};
+                years.forEach(y => {
+                    groupedProjects[y] = projects.filter(p => p.year === y);
+                });
+
+                let html = `
+                    <div class="w-full px-8 md:px-24 py-12 animate-fadeIn">
+                        <div class="w-full space-y-10">
+                `;
+
+                years.forEach(year => {
+                    const yearProjects = groupedProjects[year];
+                    if (yearProjects && yearProjects.length > 0) {
+                        html += `
+                            <div class="space-y-2">
+                                <h2 class="text-sm font-mono tracking-widest text-white font-semibold">
+                                    ${year}
+                                </h2>
+                                <div class="space-y-1 border-t border-white/15/60 pt-1.5">
+                        `;
+
+                        yearProjects.forEach(p => {
+                            html += `
+                                <div class="group cursor-pointer flex flex-col md:flex-row md:justify-between md:items-baseline py-1.5 border-b border-dotted border-white/15 transition-all duration-300" 
+                                     onmouseenter="handleProjectHover('${p.coverUrl}')" 
+                                     onmouseleave="handleProjectLeave()"
+                                     onclick="router.navigate('detail', '${p.id}');">
+                                    <span class="text-sm md:text-base font-light tracking-tight text-neutral-200 group-hover:text-white group-hover:translate-x-1 transition-all duration-300">
+                                        ${p.title.toLowerCase()}
+                                    </span>
+                                    <span class="text-[11px] font-mono text-neutral-200 group-hover:text-neutral-200 md:text-right mt-0.5 md:mt-0 transition-colors">
+                                        ${p.subtitle}
+                                    </span>
+                                </div>
+                            `;
+                        });
+
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+                startBgSlideshow();
+            },
+
+            renderDetail(container, projectId) {
+                stopBgSlideshow();
+                const project = projects.find(p => p.id === projectId) || projects[0];
+
+                let html = `
+                    <div class="w-full px-8 md:px-24 py-12 md:py-16 animate-fadeIn">
+                        <!-- Top Navigation -->
+                        <div class="mb-10">
+                            <button onclick="router.navigate('home')" class="group inline-flex items-center text-xs font-mono tracking-widest uppercase text-neutral-200 hover:text-white transition-colors">
+                                <span class="mr-2 transform group-hover:-translate-x-1 transition-transform">←</span> Indice
+                            </button>
+                        </div>
+
+                        <!-- Project Header -->
+                        <div class="space-y-3 mb-8 border-b border-white/15/80 pb-6">
+                            <div class="flex flex-wrap items-center gap-3 text-xs font-mono text-neutral-200 uppercase tracking-widest">
+                                <span>${project.year}</span>
+                                /
+                                <span>${project.medium}</span>
+                            </div>
+                            <h1 class="text-3xl md:text-5xl font-light tracking-tight text-white">${project.title}</h1>
+                            
+                            <div class="flex flex-wrap items-center justify-between pt-2">
+                                <div class="flex flex-wrap gap-2">
+                                    ${project.tags.map(tag => `
+    <span class="text-[11px] font-mono px-3 py-1 bg-white/5 border border-white/15 text-neutral-300 hover:text-white hover:border-white/40 transition-all duration-300">
+        ${tag}
+    </span>
+`).join('')}
+                                </div>
+                                ${projectId === 'shiyu' ? `
+                                    <a href="https://shen-nv.github.io/shiyu/" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center text-xs font-mono tracking-widest uppercase text-white hover:opacity-60 transition-opacity mt-2 md:mt-0 underline underline-offset-4">
+                                        <span>shiyu web</span>
+                                        <span class="ml-1 transform group-hover:translate-x-1 transition-transform">↗</span>
+                                    </a>
+                                ` : ''}
+                                ${projectId === 'a-digestion' ? `
+                                    <a href="https://shen-nv.github.io/A-digestion/" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center text-xs font-mono tracking-widest uppercase text-white hover:opacity-60 transition-opacity mt-2 md:mt-0 underline underline-offset-4">
+                                        <span>a digestion web</span>
+                                        <span class="ml-1 transform group-hover:translate-x-1 transition-transform">↗</span>
+                                    </a>
+                                ` : ''}
+                                ${projectId === 'food-lab' ? `
+                                    <a href="https://shen-nv.github.io/food-lab/" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center text-xs font-mono tracking-widest uppercase text-white hover:opacity-60 transition-opacity mt-2 md:mt-0 underline underline-offset-4">
+                                        <span>foodlab web</span>
+                                        <span class="ml-1 transform group-hover:translate-x-1 transition-transform">↗</span>
+                                    </a>
+                                ` : ''}
+                                ${projectId === 'lux-initiative' ? `
+                                    <a href="https://shen-nv.github.io/lux-initiative/html/initiative.html" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center text-xs font-mono tracking-widest uppercase text-white hover:opacity-60 transition-opacity mt-2 md:mt-0 underline underline-offset-4">
+                                        <span>lux-initiative web</span>
+                                        <span class="ml-1 transform group-hover:translate-x-1 transition-transform">↗</span>
+                                    </a>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Concept (Placed FIRST, tighter line spacing) -->
+                        <div class="space-y-10">
+                            <section class="space-y-2">
+                                
+                                <p class="text-base md:text-lg font-light leading-normal text-white/90">
+                                    ${project.concept}
+                                </p>
+                            </section>
+
+                            <!-- Details (Images reduced by half, tighter spacing) -->
+                                                        <!-- Details (Images reduced by half, tighter spacing) -->
+                            ${project.details.map((detail, index) => `
+                                <div class="space-y-4 pt-4 ${(projectId === 'il-linguaggio-della-forma' || projectId === 'food-lab' || projectId === 'citta-degli-zombi' || projectId === 'silent-sky' || projectId === 'nemoris' || projectId === 'supermercato' || projectId === 'insert-shot' || projectId === 'maurizio-cattelan') ? 'max-w-3xl mx-auto' : 'max-w-xl'}">
+                                    <div class="w-full">
+                                        ${detail.video ? `
+                                            <video src="${detail.video}" controls playsinline preload="metadata" class="w-full h-auto"></video>
+                                        ` : `
+                                            <img src="${detail.img}" alt="Detail ${index + 1}" class="w-full h-auto">
+                                        `}
+                                    </div>
+                                    ${(detail.subtitle !== undefined && detail.subtitle !== '') || detail.text || detail.title ? `
+                                        <div class="pt-1 ${(projectId === 'il-linguaggio-della-forma' || projectId === 'food-lab' || projectId === 'citta-degli-zombi' || projectId === 'silent-sky' || projectId === 'nemoris' || projectId === 'supermercato' || projectId === 'insert-shot' || projectId === 'maurizio-cattelan') ? 'text-center' : 'text-left'}">
+                                            <p class="text-sm md:text-base font-light text-neutral-300">${detail.subtitle || detail.text || detail.title}</p>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Bottom Navigation -->
+                        <div class="mt-16 pt-6 flex justify-between items-center text-xs font-mono uppercase tracking-widest text-neutral-200">
+                            <button onclick="router.navigate('home')" class="hover:text-white transition-colors">
+                                ← Indice
+                            </button>
+                            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="hover:text-white transition-colors">
+                                Inizio ↑
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+            },
+
+            openModal(type) {
+                stopBgSlideshow();
+                const overlay = document.getElementById('modal-overlay');
+                const content = document.getElementById('modal-content');
+                const body = document.getElementById('modal-body');
+
+                                if (type === 'about') {
+                        body.innerHTML = `
+                            <h2 class="text-2xl font-light tracking-tight mb-6">About Me</h2>
+                            <div class="space-y-4 text-neutral-300 font-light leading-relaxed text-base">
+                                <p>Siyu Wang vive e lavora tra Milano e la Cina. Laureata all'Accademia di Belle Arti di Brera, la sua ricerca spazia tra installazioni, net art, AR e video sperimentali. Il suo lavoro unisce teoria critica e pratica concreta, traducendo riflessioni sociologiche in installazioni multimediali e interfacce digitali tangibili e immersive.</p>
+                                <div class="pt-6 border-t border-white/15 mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs font-mono text-neutral-400">
+                                    <div>
+                                        <span class="text-white font-semibold block mb-1">ESPERIENZE</span>
+                                        2026.01-03 — OBS, Milano · Games Service (Stage)<br>
+                                        2025.03 — Brera Open Day 250° · Game & Animation Design<br>
+                                        2023.07-09 — DHgate, Pechino · Product Design (Stage)<br>
+                                        2023.07 — "Micro-espressioni" · Sistema Interattivo<br>
+                                        2020-2022 — BIT Zhuhai · Capo Dipartimento Pratico
+                                    </div>
+                                    <div>
+                                        <span class="text-white font-semibold block mb-1">FORMAZIONE</span>
+                                        B.A. - Beijing Institute of Technology, Zhuhai · Visual Communication Design<br>
+                                        M.A. - Accademia di Belle Arti di Brera, Milano · Net Art & Digital Culture
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+} else if (type === 'contact') {
+                    body.innerHTML = `
+                        <h2 class="text-2xl font-light tracking-tight mb-6">Contact & Inquiries</h2>
+                        <div class="space-y-6 text-neutral-300 font-light text-base">
+                            <p>Per opportunità professionali, colloqui o proposte lavorative, potete mettervi in contatto qui:</p>
+                            <div class="bg-neutral-900 border-white/15 text-white p-6 border border-white/15 space-y-3 font-mono text-sm text-white/90">
+                                <p>Email: <a href="mailto:wsiyu.000@gmail.com" class="underline underline-offset-4 hover:text-white">wsiyu.000@gmail.com</a></p>
+                                <p>WeChat: Digital_Cube_Studio</p>
+                                <p>Location: Milan, Italy / China / Remote Worldwide</p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }, 10);
+            },
+
+            closeModal() {
+                const overlay = document.getElementById('modal-overlay');
+                const content = document.getElementById('modal-content');
+                overlay.classList.add('opacity-0');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+                startBgSlideshow();
+            }
+        };
+
+        window.onload = function() {
+            router.init();
+        };
+
+        document.getElementById('modal-overlay').addEventListener('click', (e) => {
+            if (e.target.id === 'modal-overlay') {
+                router.closeModal();
+            }
+        });
+
+        ['click', 'mousemove', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+            window.addEventListener(evt, () => {
+                if (!isAudioInitialized) {
+                    playSoundscape('rain');
+                }
+            }, { once: true });
+        });
+    </script>
+</body>
+</html>
