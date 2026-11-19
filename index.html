@@ -61,14 +61,6 @@
             inset: 0;
             transition: opacity 0.8s ease;
         }
-        .ambient-bg img, .ambient-bg video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            inset: 0;
-            transition: opacity 0.8s ease;
-        }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -113,7 +105,7 @@
     </div>
 
     <!-- 底部版权与极简高雅的音效风格切换栏 -->
-        <footer class="w-full px-8 md:px-24 py-8 flex flex-col md:flex-row justify-between items-center text-xs tracking-wider text-neutral-200 mt-auto bg-transparent ">
+    <footer class="w-full px-8 md:px-24 py-8 flex flex-col md:flex-row justify-between items-center text-xs tracking-wider text-neutral-200 mt-auto bg-transparent ">
         <p>MILAN / CHINA</p>
         
         <div class="flex items-center space-x-2 my-4 md:my-0 font-mono text-[11px] uppercase tracking-widest">
@@ -392,14 +384,14 @@
                 medium: "Video Panoramico 360°, Ricerca Scultorea",
                 tags: ["#Video360", "#Scultura", "#Brera"],
                 color: "#FF2A2A",
-                coverUrl: "video/il linguaggio della forma.mp4",
+                coverUrl: "https://github.com/shen-nv/portfolio/releases/download/il-linguaggio-della-forma/il.linguaggio.della.forma.mp4",
                 heroUrl: "https://placehold.co/1600x900/3a3a3a/FAFAFA?text=Form+Hero",
                 concept: `Il video documenta una lezione del corso di Scultura all'Accademia di Belle Arti di Brera attraverso una ripresa panoramica a 360°.<br><br>L'aula si trasforma in uno spazio d'indagine sensoriale e formale: il filmato riprende i processi creativi, il dialogo con i docenti e le sperimentazioni individuali che danno forma all'idea scultorea.<br><br>Esplora liberamente l'ambiente del laboratorio, i gesti della lavorazione e lo spazio dell'aula guardandoti intorno.`,
                 details: [
                     { 
                         subtitle: "《il linguaggio della forma》", 
                         text: "Ripresa panoramica a 360° della lezione di scultura e documentazione dei processi creativi.",
-                        video: "video/il linguaggio della forma.mp4" 
+                        video: "https://github.com/shen-nv/portfolio/releases/download/il-linguaggio-della-forma/il.linguaggio.della.forma.mp4" 
                     }
                 ]
             },
@@ -461,14 +453,14 @@
                 medium: "Gioco Interattivo, Narrativa Digitale, UI/UX",
                 tags: ["#GameArt", "#Interattivo", "#Narrativa"],
                 color: "#FF7A00",
-                coverUrl: "https://github.com/shen-nv/portfolio/releases/download/video/nemoris.mp4",
+                coverUrl: "https://github.com/shen-nv/portfolio/releases/download/nemoris/nemoris.mp4",
                 heroUrl: "https://placehold.co/1600x900/333333/FAFAFA?text=Nemoris+Hero",
                 concept: `Nell'era di Internet, siamo ancora noi stessi o siamo dei 'fantocci' controllati dagli algoritmi?<br><br>Il progetto inserisce questa riflessione all'interno di una torre metaforica. Nei panni di un esploratore, il giocatore entra nella torre e deve attraversare consecutivamente tre livelli che rappresentano altrettanti stati di sopravvivenza quotidiana: l'ufficio, simbolo dell'addomesticamento del lavoro; l'ambiente domestico, che rappresenta l'intrusione nella sfera privata; e la biblioteca, simbolo della digitalizzazione e quantificazione della conoscenza.<br><br>In ogni livello, le scelte del giocatore (sottomissione o resistenza) si condensano in un 'frammento di dati (carta)'. Al termine dell'esplorazione dei tre livelli, il giocatore si dirige verso la sommità della torre portando con sé le tre carte raccolte, per affrontare il destino finale determinato dai volti delle carte:<br>- Scelta di sottomissione: Il giocatore si fonde con l'entità in cima alla torre, perdendo la propria soggettività e riducendosi a nutrimento di dati eternamente imprigionato in un ciclo infinito.<br>- Scelta di rifiuto: Il giocatore frantuma lo specchio, realizzando con stupore che la cosiddetta 'entità' non è una forza esterna, bensì la propria 'ombra digitale' alienata nella rete. Con la rottura dello specchio e il crollo della torre, il giocatore si libera dal controllo degli algoritmi, compiendo la ricostruzione e la rinascita di sé.`,
                 details: [
                     { 
                         subtitle: "《Nemoris》— Open Day", 
                         text: "Presentazione del progetto e dimostrazione del gameplay.",
-                        video: "https://github.com/shen-nv/portfolio/releases/download/video/nemoris.mp4" 
+                        video: "https://github.com/shen-nv/portfolio/releases/download/nemoris/nemoris.mp4" 
                     }
                 ]
             },
@@ -547,7 +539,7 @@
                     }
                 ]
             },
-{
+            {
                 id: "traccia",
                 title: "Traccia",
                 subtitle: "Arduino & Tracciamento Dati Personali",
@@ -573,7 +565,7 @@
                     }
                 ]
             },
-{
+            {
                 id: "micro-espressioni",
                 title: "Micro-espressioni",
                 subtitle: "Sistema Espositivo AR Interattivo",
@@ -607,7 +599,7 @@
                     }
                 ]
             }
-];
+        ];
 
         let bgSlideInterval = null;
         let currentBgIndex = 0;
@@ -678,13 +670,45 @@
             currentProjectId: null,
 
             init() {
-                this.navigate('home');
+                window.addEventListener('popstate', (event) => {
+                    const overlay = document.getElementById('modal-overlay');
+                    if (overlay && !overlay.classList.contains('hidden')) {
+                        this.closeModal(false);
+                        return;
+                    }
+
+                    const state = event.state;
+                    if (state && state.view === 'detail' && state.param) {
+                        this.navigate('detail', state.param, false);
+                    } else {
+                        this.navigate('home', null, false);
+                    }
+                });
+
+                const initialHash = window.location.hash.replace('#', '');
+                const matchedProject = projects.find(p => p.id === initialHash);
+
+                if (matchedProject) {
+                    history.replaceState({ view: 'detail', param: matchedProject.id }, '', `#${matchedProject.id}`);
+                    this.navigate('detail', matchedProject.id, false);
+                } else {
+                    history.replaceState({ view: 'home', param: null }, '', window.location.pathname + window.location.search);
+                    this.navigate('home', null, false);
+                }
             },
 
-            navigate(view, param = null) {
+            navigate(view, param = null, pushHistory = true) {
                 this.currentView = view;
                 this.currentProjectId = param;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                if (pushHistory) {
+                    if (view === 'detail' && param) {
+                        history.pushState({ view: 'detail', param: param }, '', `#${param}`);
+                    } else {
+                        history.pushState({ view: 'home', param: null }, '', window.location.pathname + window.location.search);
+                    }
+                }
 
                 const container = document.getElementById('app-container');
                 const ambientBg = document.getElementById('ambient-bg');
@@ -706,7 +730,6 @@
                             } else {
                                 let bgTarget = currentProject.coverUrl;
                                 if (isVideoUrl(bgTarget)) {
-                                    // 如果封面是视频，优先寻找 details 中的第一张图片作为背景
                                     const firstImgDetail = currentProject.details ? currentProject.details.find(d => d.img) : null;
                                     bgTarget = firstImgDetail ? firstImgDetail.img : (currentProject.heroUrl || "https://placehold.co/1600x900/222222/FAFAFA?text=Background");
                                 }
@@ -800,10 +823,10 @@
                             <div class="flex flex-wrap items-center justify-between pt-2">
                                 <div class="flex flex-wrap gap-2">
                                     ${project.tags.map(tag => `
-    <span class="text-[11px] font-mono px-3 py-1 bg-white/5 border border-white/15 text-neutral-300 hover:text-white hover:border-white/40 transition-all duration-300">
-        ${tag}
-    </span>
-`).join('')}
+                                        <span class="text-[11px] font-mono px-3 py-1 bg-white/5 border border-white/15 text-neutral-300 hover:text-white hover:border-white/40 transition-all duration-300">
+                                            ${tag}
+                                        </span>
+                                    `).join('')}
                                 </div>
                                 ${projectId === 'shiyu' ? `
                                     <a href="https://shen-nv.github.io/shiyu/" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center text-xs font-mono tracking-widest uppercase text-white hover:opacity-60 transition-opacity mt-2 md:mt-0 underline underline-offset-4">
@@ -832,17 +855,15 @@
                             </div>
                         </div>
 
-                        <!-- Concept (Placed FIRST, tighter line spacing) -->
+                        <!-- Concept -->
                         <div class="space-y-10">
                             <section class="space-y-2">
-                                
                                 <p class="text-base md:text-lg font-light leading-normal text-white/90">
                                     ${project.concept}
                                 </p>
                             </section>
 
-                            <!-- Details (Images reduced by half, tighter spacing) -->
-                                                        <!-- Details (Images reduced by half, tighter spacing) -->
+                            <!-- Details -->
                             ${project.details.map((detail, index) => `
                                 <div class="space-y-4 pt-4 ${(projectId === 'il-linguaggio-della-forma' || projectId === 'food-lab' || projectId === 'citta-degli-zombi' || projectId === 'silent-sky' || projectId === 'nemoris' || projectId === 'supermercato' || projectId === 'insert-shot' || projectId === 'maurizio-cattelan') ? 'max-w-3xl mx-auto' : 'max-w-xl'}">
                                     <div class="w-full">
@@ -881,29 +902,32 @@
                 const content = document.getElementById('modal-content');
                 const body = document.getElementById('modal-body');
 
-                                if (type === 'about') {
-                        body.innerHTML = `
-                            <h2 class="text-2xl font-light tracking-tight mb-6">About Me</h2>
-                            <div class="space-y-4 text-neutral-300 font-light leading-relaxed text-base">
-                                <p>Siyu Wang vive e lavora tra Milano e la Cina. Laureata all'Accademia di Belle Arti di Brera, la sua ricerca spazia tra installazioni, net art, AR e video sperimentali. Il suo lavoro unisce teoria critica e pratica concreta, traducendo riflessioni sociologiche in installazioni multimediali e interfacce digitali tangibili e immersive.</p>
-                                <div class="pt-6 border-t border-white/15 mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs font-mono text-neutral-400">
-                                    <div>
-                                        <span class="text-white font-semibold block mb-1">ESPERIENZE</span>
-                                        2026.01-03 — OBS, Milano · Games Service (Stage)<br>
-                                        2025.03 — Brera Open Day 250° · Game & Animation Design<br>
-                                        2023.07-09 — DHgate, Pechino · Product Design (Stage)<br>
-                                        2023.07 — "Micro-espressioni" · Sistema Interattivo<br>
-                                        2020-2022 — BIT Zhuhai · Capo Dipartimento Pratico
-                                    </div>
-                                    <div>
-                                        <span class="text-white font-semibold block mb-1">FORMAZIONE</span>
-                                        B.A. - Beijing Institute of Technology, Zhuhai · Visual Communication Design<br>
-                                        M.A. - Accademia di Belle Arti di Brera, Milano · Net Art & Digital Culture
-                                    </div>
+                // 打开模态框时也向历史记录压入状态，支持鼠标返回键关闭弹窗
+                history.pushState({ view: this.currentView, param: this.currentProjectId, modal: type }, '', window.location.href);
+
+                if (type === 'about') {
+                    body.innerHTML = `
+                        <h2 class="text-2xl font-light tracking-tight mb-6">About Me</h2>
+                        <div class="space-y-4 text-neutral-300 font-light leading-relaxed text-base">
+                            <p>Siyu Wang vive e lavora tra Milano e la Cina. Laureata all'Accademia di Belle Arti di Brera, la sua ricerca spazia tra installazioni, net art, AR e video sperimentali. Il suo lavoro unisce teoria critica e pratica concreta, traducendo riflessioni sociologiche in installazioni multimediali e interfacce digitali tangibili e immersive.</p>
+                            <div class="pt-6 border-t border-white/15 mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs font-mono text-neutral-400">
+                                <div>
+                                    <span class="text-white font-semibold block mb-1">ESPERIENZE</span>
+                                    2026.01-03 — OBS, Milano · Games Service (Stage)<br>
+                                    2025.03 — Brera Open Day 250° · Game & Animation Design<br>
+                                    2023.07-09 — DHgate, Pechino · Product Design (Stage)<br>
+                                    2023.07 — "Micro-espressioni" · Sistema Interattivo<br>
+                                    2020-2022 — BIT Zhuhai · Capo Dipartimento Pratico
+                                </div>
+                                <div>
+                                    <span class="text-white font-semibold block mb-1">FORMAZIONE</span>
+                                    B.A. - Beijing Institute of Technology, Zhuhai · Visual Communication Design<br>
+                                    M.A. - Accademia di Belle Arti di Brera, Milano · Net Art & Digital Culture
                                 </div>
                             </div>
-                        `;
-} else if (type === 'contact') {
+                        </div>
+                    `;
+                } else if (type === 'contact') {
                     body.innerHTML = `
                         <h2 class="text-2xl font-light tracking-tight mb-6">Contact & Inquiries</h2>
                         <div class="space-y-6 text-neutral-300 font-light text-base">
@@ -925,7 +949,7 @@
                 }, 10);
             },
 
-            closeModal() {
+            closeModal(syncHistory = true) {
                 const overlay = document.getElementById('modal-overlay');
                 const content = document.getElementById('modal-content');
                 overlay.classList.add('opacity-0');
@@ -934,7 +958,15 @@
                 setTimeout(() => {
                     overlay.classList.add('hidden');
                 }, 300);
-                startBgSlideshow();
+
+                if (this.currentView === 'home') {
+                    startBgSlideshow();
+                }
+
+                // 如果是通过点击 [Close] 或遮罩关闭，同步回退历史栈
+                if (syncHistory && history.state && history.state.modal) {
+                    history.back();
+                }
             }
         };
 
